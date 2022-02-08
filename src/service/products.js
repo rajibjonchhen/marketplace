@@ -6,7 +6,19 @@ const productsRouter = Router()
 // get all the products
 productsRouter.get('/', async(req,res,next) => {
 try {
-    const result = await pool.query(`SELECT * FROM products;`)
+    const result = await pool.query(`
+    SELECT 
+        product_name,
+        product_description,
+            category,
+            brand,
+            price,
+            image_url,
+            comment,
+            rating 
+    FROM products 
+    JOIN reviews 
+    ON products.product_id = reviews.product_id;`)
     res.send(result.rows)
 } catch (error) {
     res.status(500).send({msg:error.message})
@@ -44,7 +56,20 @@ productsRouter.post('/', async(req,res,next) => {
      // getting the product by id 
      productsRouter.get('/:product_id', async(req,res,next) => {
         try {
-            const result = await pool.query(`SELECT * FROM products WHERE product_id=$1;`, [req.params.product_id]);
+            const result = await pool.query(`SELECT 
+            product_name,
+            products.product_id As product_id,
+            product_description,
+            category,
+            brand,
+            price,
+            image_url,
+            comment,
+            rating 
+        FROM products 
+        JOIN reviews 
+        ON products.product_id = reviews.product_id
+             WHERE products.product_id=$1;`, [req.params.product_id]);
             if(result.rows[0]){
                 res.send(result.rows)
             } else{

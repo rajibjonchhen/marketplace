@@ -4,9 +4,9 @@ import pool from '../utils/db/connect.js'
 const reviewsRouter = Router()
 
 // get all the reviews
-reviewsRouter.get('/', async(req,res,next) => {
+reviewsRouter.get('/:product_id', async(req,res,next) => {
 try {
-    const result = await pool.query(`SELECT * FROM reviews;`)
+    const result = await pool.query(`SELECT * FROM reviews WHERE product_id=$1;`,[req.params.product_id])
     res.send(result.rows)
 } catch (error) {
     res.status(500).send({msg:error.message})
@@ -14,17 +14,19 @@ try {
 });
 
 // post new reviews
-reviewsRouter.post('/', async(req,res,next) => {
+reviewsRouter.post('/:product_id', async(req,res,next) => {
     try {
         const result = await pool.query(`INSERT INTO 
         reviews(
            comment,
-           rating
+           rating,
+           product_id
             )
-            VALUES($1,$2)
+            VALUES($1,$2,$3)
             RETURNING *;`,
             [req.body.comment,
-            req.body.rating
+            req.body.rating,
+            req.params.product_id
             ]);
 
         res.send(result.rows)
