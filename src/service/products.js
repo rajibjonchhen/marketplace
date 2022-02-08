@@ -3,7 +3,7 @@ import pool from '../utils/db/connect.js'
 
 const productsRouter = Router()
 
-
+// get all the products
 productsRouter.get('/', async(req,res,next) => {
 try {
     const result = await pool.query(`SELECT * FROM products;`)
@@ -11,18 +11,9 @@ try {
 } catch (error) {
     res.status(500).send({msg:error.message})
 }
-})
+});
 
-
-// "id": 1, //SERVER GENERATED
-// "name": "3310",  // NOT NULL
-// "description": "somthing longer", // NOT NUL
-// "brand": "nokia", // NOT NUL 	  
-// "image_url":"https://drop.ndtv.com/TECH/product_database/images/2152017124957PM_635_nokia_3310.jpeg?downsize=*:420&output-quality=80", NOT NUL
-// "price": 100, // NOT NUL
-// "category": "smartphones" // NOT NUL
-// "created_at": "2019-07-19T09:32:10.535Z", //SERVER GENERATED
-// "updated_at": "2019-07-19T09:32:10.535Z", //SERVER GENERATED
+// post new products
 productsRouter.post('/', async(req,res,next) => {
     try {
         const result = await pool.query(`INSERT INTO 
@@ -49,4 +40,48 @@ productsRouter.post('/', async(req,res,next) => {
         res.status(500).send({msg:error.message})
     }
     })
+
+     // getting the product by id 
+     productsRouter.get('/:product_id', async(req,res,next) => {
+        try {
+            const result = await pool.query(`SELECT * FROM products WHERE product_id=$1;`, [req.params.product_id]);
+            if(result.rows[0]){
+                res.send(result.rows)
+            } else{
+                res.status(404).send({msg:"the product not found"})
+            }
+        
+        } catch (error) {
+            res.status(500).send({msg:error.message})
+        }
+        })
+
+          // updating the product info by id 
+     productsRouter.put('/:product_id', async(req,res,next) => {
+        try {
+           const query = `UPDATE products SET ${Object.keys(req.body)
+            .map((key,i) => `${key} = $${i+1}`)
+            .join(",")} WHERE product_id = $${Object.keys(req.body).length+1} RETURNING *;`;
+            const result =await pool.query(query,[
+           ...Object.values(req.body),req.params.product_id
+            ])
+         
+                res.send(result.rows[0])
+        
+        } catch (error) {
+            res.status(500).send({msg:error.message})
+        }
+        })
+    
+
+    // delete product
+    productsRouter.delete('/:product_id', async(req,res,next) => {
+        try {
+            await pool.query(`DELETE FROM products WHERE product_id=$1;`,[req.params.product_id]);
+                res.status(204).send()
+        
+        } catch (error) {
+            res.status(500).send({msg:error.message})
+        }
+        })
 export default productsRouter

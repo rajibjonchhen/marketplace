@@ -1,6 +1,7 @@
 import express from 'express'
 import pool from './utils/db/connect.js'
 import productsRouter from './service/products.js'
+import reviewsRouter from './service/reviews.js'
 
 const server = express()
 
@@ -9,6 +10,7 @@ const result = await pool.query("SELECT NOW();")
 
 server.use(express.json())
 server.use('/products',productsRouter)
+server.use('/reviews',reviewsRouter)
 server.listen(PORT, ()=> {
     console.log("server has is running ",PORT)
 })
